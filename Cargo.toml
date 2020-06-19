@@ -1,0 +1,12 @@
+[package]
+name = "stellaris-gog-mod-manager"
+version = "0.1.0"
+authors = ["M*C*O <mcofficer@gmx.de>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+ureq = "1.2"
+serde = { version = "1.0.112", features = ["derive"] }
+clap = "3.0.0-beta.1"
