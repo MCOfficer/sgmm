@@ -4,7 +4,10 @@ extern crate anyhow;
 mod remote;
 
 use clap::{App, Arg};
+use pbr;
+use progress_streams::ProgressReader;
 use regex::Regex;
+use std::io::{BufReader, Read};
 
 fn main() {
     let matches = App::new("Stellaris GOG Mod Manager (sgmm)")
@@ -58,23 +61,20 @@ fn install(item_id: u32, verbose: bool) {
         Err(e) => panic!("Failed to get info from steam: {}", e),
     };
 
-    println!("\n### Attempting download via steamworkshop.download ###");
-    match remote::steamworkshop_download::request_download(item_id, verbose) {
-        Ok(download_link) => {
-            println!("Stub: process {}", download_link);
-            return;
-        }
-        Err(e) => println!("Failed to request download: {}", e),
-    };
+    let download_link = remote::get_download_link(item_id, verbose);
 
-    println!("\n### Attempting download via steamworkshopdownloader.io ###");
-    match remote::steamworkshopdownloader_io::request_transfer(item_id, verbose) {
-        Ok(download_res) => {
-            println!("Stub: process {:#?}", download_res);
-            return;
-        }
-        Err(e) => println!("Failed to request download: {}", e),
-    };
+    println!("Downloading {}", download_link);
+    let res = ureq::get(&download_link).call();
+    let mut bytes: Vec<u8> = Vec::with_capacity(file_info.file_size);
+    BufReader::new(res.into_reader())
+        .read_to_end(&mut bytes)
+        .unwrap();
+
+    // Unpack to ~/.local/share/Paradox Interactive/Stellaris/mod/steam_{id}
+    // Create ~/.local/share/Paradox Interactive/Stellaris/mod/steam_{id}.mod with:
+    //      name="{name}"
+    //      path="{full path}"
+    // remove ~/.local/share/Paradox Interactive/Stellaris/mods_registry.json
 }
 
 fn remove(modification: &str, verbose: bool) {

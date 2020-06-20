@@ -1,23 +1,50 @@
+pub fn get_download_link(item_id: u32, verbose: bool) -> String {
+    println!("\n### Attempting download via steamworkshop.download ###");
+    match steamworkshop_download::request_download(item_id, verbose) {
+        Ok(download_link) => {
+            if verbose {
+                println!("Got download link: {}", download_link);
+            }
+            return download_link;
+        }
+        Err(e) => println!("Failed to request download: {}", e),
+    };
+
+    println!("\n### Attempting download via steamworkshopdownloader.io ###");
+    match steamworkshopdownloader_io::request_transfer(item_id, verbose) {
+        Ok(download_res) => {
+            if verbose {
+                println!("Got transfer response: {:#?}", download_res);
+            }
+            return format!(
+                "https://api.steamworkshopdownloader.io/api/download/transmit?uuid={}",
+                download_res.uuid
+            );
+        }
+        Err(e) => panic!("Failed to request download: {}", e),
+    };
+}
+
 pub mod steam {
     use anyhow::Result;
 
     use serde::Deserialize;
 
-    #[derive(Deserialize)]
+    #[derive(Debug, Deserialize)]
     pub struct WorkshopItemInfoResponseList {
         response: WorkshopItemInfoResponse,
     }
 
-    #[derive(Deserialize)]
+    #[derive(Debug, Deserialize)]
     pub struct WorkshopItemInfoResponse {
         publishedfiledetails: Vec<WorkshopItemInfo>,
     }
 
     #[derive(Debug, Deserialize)]
     pub struct WorkshopItemInfo {
-        file_url: String,
-        title: String,
-        file_size: u32,
+        pub file_url: String,
+        pub title: String,
+        pub file_size: usize,
     }
 
     pub fn retrieve_info(item_id: u32, verbose: bool) -> Result<WorkshopItemInfo> {
@@ -29,11 +56,11 @@ pub mod steam {
             ("publishedfileids[0]", &item_id.to_string()),
         ]);
 
+        let mut list: WorkshopItemInfoResponseList = res.into_json_deserialize()?;
         if verbose {
-            println!("Response: {:#?}", res);
+            println!("Response: {:#?}", list)
         }
 
-        let mut list: WorkshopItemInfoResponseList = res.into_json_deserialize()?;
         list.response
             .publishedfiledetails
             .pop()
@@ -49,11 +76,11 @@ pub mod steamworkshopdownloader_io {
 
     #[derive(Debug, Deserialize)]
     pub struct DownloadRequestResponse {
-        uuid: String,
+        pub(crate) uuid: String,
     }
 
     pub fn request_transfer(item_id: u32, verbose: bool) -> Result<DownloadRequestResponse> {
-        let body = format!("{{\"publishedFileId\":{},\"collectionId\":null,\"extract\":true,\"hidden\":false,\"direct\":false,\"autodownload\":true}}", item_id);
+        let body = format!("{{\"publishedFileId\":{},\"collectionId\":null,\"extract\":false,\"hidden\":false,\"direct\":false,\"autodownload\":true}}", item_id);
         let res = ureq::post(&format!("{}download/request", BASE_URL)).send_bytes(body.as_bytes());
 
         if verbose {
