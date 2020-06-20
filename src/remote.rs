@@ -1,5 +1,5 @@
 pub fn get_download_link(item_id: u32, verbose: bool) -> String {
-    println!("\n### Attempting download via steamworkshop.download ###");
+    println!("Attempting download via steamworkshop.download");
     match steamworkshop_download::request_download(item_id, verbose) {
         Ok(download_link) => {
             if verbose {
@@ -10,7 +10,7 @@ pub fn get_download_link(item_id: u32, verbose: bool) -> String {
         Err(e) => println!("Failed to request download: {}", e),
     };
 
-    println!("\n### Attempting download via steamworkshopdownloader.io ###");
+    println!("Attempting download via steamworkshopdownloader.io");
     match steamworkshopdownloader_io::request_transfer(item_id, verbose) {
         Ok(download_res) => {
             if verbose {
@@ -21,7 +21,10 @@ pub fn get_download_link(item_id: u32, verbose: bool) -> String {
                 download_res.uuid
             );
         }
-        Err(e) => panic!("Failed to request download: {}", e),
+        Err(e) => {
+            println!("Failed to request download: {}", e);
+            panic!()
+        }
     };
 }
 

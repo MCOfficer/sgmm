@@ -4,6 +4,7 @@ extern crate anyhow;
 mod remote;
 
 use clap::{App, Arg};
+use colored::Colorize;
 use regex::Regex;
 use std::io::{BufReader, Cursor, Read, Write};
 use std::path::PathBuf;
@@ -40,7 +41,7 @@ fn main() {
         remove(item_id, verbose);
     }
 
-    println!("\nDone!");
+    println!("{}", "\nDone!".green());
 }
 
 fn parse_item_id(str: &str) -> u32 {
@@ -58,11 +59,12 @@ fn parse_item_id(str: &str) -> u32 {
 }
 
 fn install(item_id: u32, verbose: bool) {
-    println!("Installing mod {}", item_id);
+    println!("Installing mod {}\n", item_id);
 
     let paths = build_paths(item_id, verbose);
     let info = remote::steam::retrieve_info(item_id, verbose);
 
+    println!("{}", "\n### Downloading ###".cyan());
     let download_link = remote::get_download_link(item_id, verbose);
 
     println!("Downloading {}", download_link);
@@ -72,7 +74,7 @@ fn install(item_id: u32, verbose: bool) {
         .read_to_end(&mut bytes)
         .unwrap();
 
-    println!("\n### Installing ###");
+    println!("{}", "\n### Installing ###".cyan());
 
     extract(bytes, &paths.target_dir, verbose);
 
