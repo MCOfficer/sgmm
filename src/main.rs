@@ -24,7 +24,7 @@ fn main() {
         )
         .arg(
             Arg::with_name("mod")
-                .about("The mod id (1234567890)")
+                .about("The mod id (1234567890) or workshop URL (https://steamcommunity.com/sharedfiles/filedetails/?id=1234567890)")
                 .required(true),
         )
         .arg(Arg::with_name("verbose").short('v').about("Be verbose"))
