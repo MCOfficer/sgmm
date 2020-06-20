@@ -7,8 +7,8 @@ edition = "2018"
 [dependencies]
 ureq = { version = "1.2", default_features = false, features = ["json", "tls"] }
 serde = { version = "1.0.112", features = ["derive"] }
-clap = "3.0.0-beta.1"
+clap = { version = "3.0.0-beta.1", default_features = false, features = ["suggestions", "color", "std", "cargo"] }
 anyhow = "1.0"
-regex = "1.3.9"
-zip = "0.5.6"
+regex = { version = "1.3.9", default_features = false, features = ["std", "unicode", "regex-syntax/default"] }
+zip = { version = "0.5.6", default_features = false, features = ["deflate"] }
 colored = "1.9"
