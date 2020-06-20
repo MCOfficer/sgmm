@@ -7,7 +7,9 @@ pub fn get_download_link(item_id: u32, verbose: bool) -> String {
             }
             return download_link;
         }
-        Err(e) => println!("Failed to request download: {}", e),
+        Err(e) => {
+            yellow_ln!("Failed to request download: {}", e);
+        }
     };
 
     println!("Attempting download via steamworkshopdownloader.io");
@@ -22,7 +24,7 @@ pub fn get_download_link(item_id: u32, verbose: bool) -> String {
             );
         }
         Err(e) => {
-            println!("Failed to request download: {}", e);
+            red_ln!("Failed to request download: {}", e);
             panic!()
         }
     };

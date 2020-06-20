@@ -1,10 +1,11 @@
 #[macro_use]
 extern crate anyhow;
+#[macro_use]
+extern crate colour;
 
 mod remote;
 
 use clap::{App, Arg};
-use colored::Colorize;
 use regex::Regex;
 use std::io::{BufReader, Cursor, Read, Write};
 use std::path::PathBuf;
@@ -41,7 +42,7 @@ fn main() {
         remove(item_id, verbose);
     }
 
-    println!("{}", "\nDone!".green());
+    green_ln!("{}", "\nDone!");
 }
 
 fn parse_item_id(str: &str) -> u32 {
@@ -59,12 +60,12 @@ fn parse_item_id(str: &str) -> u32 {
 }
 
 fn install(item_id: u32, verbose: bool) {
-    println!("Installing mod {}\n", item_id);
+    cyan_ln!("Installing mod {}\n", item_id);
 
     let paths = build_paths(item_id, verbose);
     let info = remote::steam::retrieve_info(item_id, verbose);
 
-    println!("{}", "\n### Downloading ###".cyan());
+    cyan_ln!("\n### Downloading ###");
     let download_link = remote::get_download_link(item_id, verbose);
 
     println!("Downloading {}", download_link);
@@ -74,7 +75,7 @@ fn install(item_id: u32, verbose: bool) {
         .read_to_end(&mut bytes)
         .unwrap();
 
-    println!("{}", "\n### Installing ###".cyan());
+    cyan_ln!("\n### Installing ###");
 
     extract(bytes, &paths.target_dir, verbose);
 
@@ -91,7 +92,10 @@ fn install(item_id: u32, verbose: bool) {
         )
         .unwrap();
 
-    println!("Removing mods_registry.json\nOpen the Launcher once to regenerate it; until then, Stellaris won't recognize your mods.");
+    println!("Removing mods_registry.json");
+    yellow_ln!(
+        "Start the Launcher to regenerate it; until then, Stellaris won't recognize your mods."
+    );
     if paths.mods_registry.exists() {
         fs::remove_file(paths.mods_registry).unwrap();
     }
@@ -103,14 +107,14 @@ fn remove(item_id: u32, verbose: bool) {
     let paths = build_paths(item_id, verbose);
 
     if let Err(e) = fs::remove_dir_all(&paths.target_dir) {
-        println!(
+        red_ln!(
             "Failed to remove {}; {}",
             paths.target_dir.to_string_lossy(),
             e
         )
     };
     if let Err(e) = fs::remove_file(&paths.mod_file) {
-        println!(
+        red_ln!(
             "Failed to remove {}; {}",
             paths.mod_file.to_string_lossy(),
             e
