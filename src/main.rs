@@ -130,7 +130,7 @@ fn build_paths(item_id: u32, verbose: bool) -> InstallPaths {
     }
     let stellaris_mods_dir = PathBuf::from(format!(
         "{}/.local/share/Paradox Interactive/Stellaris/mod/",
-        env!("HOME")
+        std::env::var("HOME").unwrap()
     ));
 
     let mut target_dir = stellaris_mods_dir.clone();
@@ -148,9 +148,7 @@ fn build_paths(item_id: u32, verbose: bool) -> InstallPaths {
 }
 
 fn extract(bytes: Vec<u8>, target_dir: &PathBuf, verbose: bool) {
-    if verbose {
-        println!("Extracting to {}", target_dir.to_string_lossy());
-    }
+    println!("Extracting to {}", target_dir.to_string_lossy());
     if !target_dir.exists() {
         fs::create_dir_all(&target_dir).unwrap();
     }
