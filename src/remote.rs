@@ -26,8 +26,6 @@ pub fn get_download_link(item_id: u32, verbose: bool) -> String {
 }
 
 pub mod steam {
-    use anyhow::Result;
-
     use serde::Deserialize;
 
     #[derive(Debug, Deserialize)]
@@ -47,7 +45,8 @@ pub mod steam {
         pub file_size: usize,
     }
 
-    pub fn retrieve_info(item_id: u32, verbose: bool) -> Result<WorkshopItemInfo> {
+    pub fn retrieve_info(item_id: u32, verbose: bool) -> WorkshopItemInfo {
+        println!("Fetching info");
         let res = ureq::post(
             "https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1/",
         )
@@ -56,15 +55,12 @@ pub mod steam {
             ("publishedfileids[0]", &item_id.to_string()),
         ]);
 
-        let mut list: WorkshopItemInfoResponseList = res.into_json_deserialize()?;
+        let mut list: WorkshopItemInfoResponseList = res.into_json_deserialize().unwrap();
         if verbose {
             println!("Response: {:#?}", list)
         }
 
-        list.response
-            .publishedfiledetails
-            .pop()
-            .ok_or_else(|| anyhow!("Got 0 results from steam!"))
+        list.response.publishedfiledetails.pop().unwrap()
     }
 }
 
