@@ -26,20 +26,22 @@ fn main() {
         .arg(
             Arg::with_name("mod")
                 .about("The mod id (1234567890) or workshop URL (https://steamcommunity.com/sharedfiles/filedetails/?id=1234567890)")
+                .multiple(true)
                 .required(true),
         )
         .arg(Arg::with_name("verbose").short('v').about("Be verbose"))
         .get_matches();
 
-    let operation = matches.value_of("operation").unwrap();
-    let modification = matches.value_of("mod").unwrap();
-    let verbose = matches.is_present("verbose");
-    let item_id = parse_item_id(modification);
+    for modification in matches.values_of("mod").unwrap() {
+        let operation = matches.value_of("operation").unwrap();
+        let verbose = matches.is_present("verbose");
+        let item_id = parse_item_id(modification);
 
-    if operation == "install" {
-        install(item_id, verbose);
-    } else {
-        remove(item_id, verbose);
+        if operation == "install" {
+            install(item_id, verbose);
+        } else {
+            remove(item_id, verbose);
+        }
     }
 
     green_ln!("{}", "\nDone!");
@@ -60,7 +62,7 @@ fn parse_item_id(str: &str) -> u32 {
 }
 
 fn install(item_id: u32, verbose: bool) {
-    cyan_ln!("Installing mod {}\n", item_id);
+    cyan_ln!("\nInstalling mod {}\n", item_id);
 
     let paths = build_paths(item_id, verbose);
     let info = remote::steam::retrieve_info(item_id, verbose);
@@ -102,7 +104,7 @@ fn install(item_id: u32, verbose: bool) {
 }
 
 fn remove(item_id: u32, verbose: bool) {
-    println!("Removing mod {}", item_id);
+    println!("\nRemoving mod {}", item_id);
 
     let paths = build_paths(item_id, verbose);
 
