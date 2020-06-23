@@ -7,10 +7,9 @@ mod remote;
 
 use clap::{App, Arg};
 use regex::Regex;
+use std::fs;
 use std::io::{BufReader, Cursor, Read, Write};
 use std::path::PathBuf;
-use std::{fs, io};
-use zip;
 
 fn main() {
     let matches = App::new("Stellaris GOG Mod Manager (sgmm)")
@@ -79,7 +78,7 @@ fn install(item_id: u32, verbose: bool) {
 
     cyan_ln!("\n### Installing ###");
 
-    extract(bytes, &paths.target_dir, verbose);
+    zip_extract::extract(Cursor::new(bytes), &paths.target_dir, true).unwrap();
 
     println!("Writing .mod file");
     fs::File::create(paths.mod_file)
@@ -151,76 +150,4 @@ fn build_paths(item_id: u32, verbose: bool) -> InstallPaths {
         mod_file,
         mods_registry,
     }
-}
-
-fn extract(bytes: Vec<u8>, target_dir: &PathBuf, verbose: bool) {
-    println!("Extracting to {}", target_dir.to_string_lossy());
-    if !target_dir.exists() {
-        fs::create_dir_all(&target_dir).unwrap();
-    }
-
-    let mut archive = zip::ZipArchive::new(Cursor::new(bytes)).unwrap();
-
-    let has_toplevel = has_toplevel(&mut archive);
-    if verbose {
-        println!("Archive has toplevel dir, stripping")
-    }
-
-    for i in 0..archive.len() {
-        let mut file = archive.by_index(i).unwrap();
-        let mut relative_path = file.sanitized_name();
-        if has_toplevel {
-            let base = relative_path
-                .components()
-                .take(1)
-                .fold(PathBuf::new(), |mut p, c| {
-                    p.push(c);
-                    p
-                });
-            relative_path = relative_path.strip_prefix(base).unwrap().to_path_buf()
-        }
-
-        if relative_path.to_string_lossy().is_empty() {
-            // Top-level directory
-            continue;
-        }
-
-        let mut outpath = target_dir.clone();
-        outpath.push(relative_path);
-
-        if file.name().ends_with('/') {
-            fs::create_dir_all(&outpath).unwrap();
-        } else {
-            if let Some(p) = outpath.parent() {
-                if !p.exists() {
-                    fs::create_dir_all(&p).unwrap();
-                }
-            }
-            let mut outfile = fs::File::create(&outpath).unwrap();
-            io::copy(&mut file, &mut outfile).unwrap();
-        }
-    }
-    if verbose {
-        println!("Extracted {} files", archive.len());
-    }
-}
-
-fn has_toplevel(archive: &mut zip::ZipArchive<Cursor<Vec<u8>>>) -> bool {
-    let mut toplevel_dir: Option<PathBuf> = None;
-    if archive.len() < 2 {
-        return false;
-    }
-
-    for i in 0..archive.len() {
-        let file = archive.by_index(i).unwrap().sanitized_name();
-        if let Some(toplevel_dir) = &toplevel_dir {
-            if !file.starts_with(toplevel_dir) {
-                return false;
-            }
-        } else {
-            // First iteration
-            toplevel_dir = Some(file.components().take(1).collect());
-        }
-    }
-    true
 }
