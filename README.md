@@ -1,6 +1,6 @@
 # The Stellaris GOG Mod Manager (`sgmm`)
 
-A helper program that installs mods from the steam workshop to your GOG Stellaris. Currently supports on Linux - Windows support should be straightfoward, but difficult (for me) to test.
+A helper program that installs mods from the steam workshop to your GOG Stellaris. Currently supports only Linux - Windows support should be straightfoward, but difficult (for me) to test.
 
 ## Usage
 
